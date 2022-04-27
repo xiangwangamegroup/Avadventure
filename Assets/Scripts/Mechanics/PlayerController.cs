@@ -5,6 +5,7 @@ using Platformer.Gameplay;
 using static Platformer.Core.Simulation;
 using Platformer.Model;
 using Platformer.Core;
+using UnityEngine.InputSystem;
 
 namespace Platformer.Mechanics
 {
@@ -42,6 +43,20 @@ namespace Platformer.Mechanics
 
         public Bounds Bounds => collider2d.bounds;
 
+        // input
+        bool onJump;
+
+        public void OnMove(InputAction.CallbackContext context)
+        {
+            // Debug.Log(context.ReadValue<Vector2>());
+            move.x = context.ReadValue<Vector2>().x;
+        }
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            // Debug.Log(context.ReadValue<float>());
+            onJump = (context.ReadValue<float>() == 1.0);
+        }
+
         void Awake()
         {
             health = GetComponent<Health>();
@@ -55,10 +70,10 @@ namespace Platformer.Mechanics
         {
             if (controlEnabled)
             {
-                move.x = Input.GetAxis("Horizontal");
-                if (jumpState == JumpState.Grounded && Input.GetButtonDown("Jump"))
+                // move.x = Input.GetAxis("Horizontal");
+                if (jumpState == JumpState.Grounded && onJump)
                     jumpState = JumpState.PrepareToJump;
-                else if (Input.GetButtonUp("Jump"))
+                else if (!onJump)
                 {
                     stopJump = true;
                     Schedule<PlayerStopJump>().player = this;
@@ -67,6 +82,7 @@ namespace Platformer.Mechanics
             else
             {
                 move.x = 0;
+                onJump = false;
             }
             UpdateJumpState();
             base.Update();
